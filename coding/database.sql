@@ -125,3 +125,10 @@ FROM query_four_april
 GROUP BY user_id, date
 ) tmp
 ORDER BY user_id, date
+
+-- having clause: used when you need to filter on an aggregated variable
+SELECT Employees.LastName, COUNT(Orders.OrderID) AS NumberOfOrders
+FROM (Orders
+INNER JOIN Employees ON Orders.EmployeeID = Employees.EmployeeID)
+GROUP BY LastName
+HAVING COUNT(Orders.OrderID) > 10;
