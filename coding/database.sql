@@ -64,13 +64,13 @@ order by id asc) a
 left join seat s on a.id=s.id;
 
 -- calculate rate
-select t.Request_at Day,
-       ROUND((count(IF(t.status!='completed',TRUE,null))/count(*)),2) as 'Cancellation Rate'
-from Trips t where
-t.Client_Id in (Select Users_Id from Users where Banned='No')
-and t.Driver_Id in (Select Users_Id from Users where Banned='No')
-and t.Request_at between '2013-10-01' and '2013-10-03'
-group by t.Request_at;
+select Request_at as Day,
+round(sum(case when Status = 'completed' then 0 else 1 end)/count(*), 2) as 'Cancellation Rate'
+from Trips
+where Client_id in (select Users_Id from Users where Banned='No' and Role='client') and
+Driver_Id in (select Users_Id from Users where Banned='No' and Role='driver')
+and Request_at between '2013-10-01' and '2013-10-03'
+group by Request_at;
 
 -- consecutive day with number greater than 100
 select distinct t1.*
@@ -126,9 +126,13 @@ GROUP BY user_id, date
 ) tmp
 ORDER BY user_id, date
 
--- having clause: used when you need to filter on an aggregated variable
-SELECT Employees.LastName, COUNT(Orders.OrderID) AS NumberOfOrders
-FROM (Orders
-INNER JOIN Employees ON Orders.EmployeeID = Employees.EmployeeID)
-GROUP BY LastName
-HAVING COUNT(Orders.OrderID) > 10;
+-- delete rows
+delete from Person where Id not in
+(select Id from(select min(Id) as Id from Person
+ group by Email) a)
+
+-- update values in a column
+update salary
+set sex=
+case when sex='f' then 'm'
+else 'f' end
